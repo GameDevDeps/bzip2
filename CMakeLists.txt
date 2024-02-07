@@ -1,0 +1,22 @@
+cmake_minimum_required(VERSION 3.9)
+project(bzip2 C)
+
+add_library(bzip2.bz2 STATIC blocksort.c huffman.c crctable.c randtable.c compress.c decompress.c bzlib.c)
+target_include_directories(bzip2.bz2 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_definitions(bzip2.bz2 PRIVATE "_FILE_OFFSET_BITS=64")
+if(UNIX OR (WIN32 AND NOT CMAKE_SHARED_LIBRARY_PREFIX STREQUAL "")
+        OR (WIN32 AND NOT CMAKE_STATIC_LIBRARY_PREFIX STREQUAL ""))
+    set_target_properties(bzip2.bz2 PROPERTIES OUTPUT_NAME bz2)
+else()
+    set_target_properties(bzip2.bz2 PROPERTIES OUTPUT_NAME libbz2)
+endif()
+add_library(bzip2::bz2 ALIAS bzip2.bz2)
+set_target_properties(bzip2.bz2 PROPERTIES EXPORT_NAME "bz2")
+
+add_executable(bzip2.bzip2 bzip2.c)
+target_link_libraries(bzip2.bzip2 PRIVATE bzip2.bz2)
+set_target_properties(bzip2.bzip2 PROPERTIES OUTPUT_NAME bzip2)
+
+add_executable(bzip2.bzip2recover bzip2recover.c)
+target_link_libraries(bzip2.bzip2recover PRIVATE bzip2.bz2)
+set_target_properties(bzip2.bzip2recover PROPERTIES OUTPUT_NAME bzip2recover)
