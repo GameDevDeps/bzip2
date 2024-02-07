@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 3.9)
 project(bzip2 C)
 
 add_library(bzip2.bz2 STATIC blocksort.c huffman.c crctable.c randtable.c compress.c decompress.c bzlib.c)
-target_include_directories(bzip2.bz2 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(bzip2.bz2 PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:include/bzip2>)
 target_compile_definitions(bzip2.bz2 PRIVATE "_FILE_OFFSET_BITS=64")
 if(UNIX OR (WIN32 AND NOT CMAKE_SHARED_LIBRARY_PREFIX STREQUAL "")
         OR (WIN32 AND NOT CMAKE_STATIC_LIBRARY_PREFIX STREQUAL ""))
@@ -15,7 +17,9 @@ set_target_properties(bzip2.bz2 PROPERTIES EXPORT_NAME "bz2")
 
 if (BUILD_SHARED_LIBS)
     add_library(bzip2.bz2_shared SHARED blocksort.c huffman.c crctable.c randtable.c compress.c decompress.c bzlib.c)
-    target_include_directories(bzip2.bz2_shared PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+    target_include_directories(bzip2.bz2_shared PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<INSTALL_INTERFACE:include/bzip2>)
     target_compile_definitions(bzip2.bz2_shared PRIVATE "_FILE_OFFSET_BITS=64")
     if(UNIX OR (WIN32 AND NOT CMAKE_SHARED_LIBRARY_PREFIX STREQUAL "")
             OR (WIN32 AND NOT CMAKE_STATIC_LIBRARY_PREFIX STREQUAL ""))
@@ -37,24 +41,25 @@ set_target_properties(bzip2.bzip2recover PROPERTIES OUTPUT_NAME bzip2recover)
 
 install(
     FILES ${PROJECT_SOURCE_DIR}/bzlib.h ${PROJECT_SOURCE_DIR}/bzlib_private.h
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bzip2
-    COMPONENT headers)
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/bzip2)
 if (BUILD_SHARED_LIBS)
     install(
         TARGETS bzip2.bz2 bzip2.bz2_shared bzip2.bzip2 bzip2.bzip2recover
-        EXPORT bzip2-targets
+        EXPORT bzip2
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        FRAMEWORK DESTINATION Library/Frameworks
-        COMPONENT libraries)
+        FRAMEWORK DESTINATION Library/Frameworks)
 else ()
     install(
         TARGETS bzip2.bz2 bzip2.bzip2 bzip2.bzip2recover
-        EXPORT bzip2-targets
+        EXPORT bzip2
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        FRAMEWORK DESTINATION Library/Frameworks
-        COMPONENT libraries)
+        FRAMEWORK DESTINATION Library/Frameworks)
 endif ()
+install(EXPORT bzip2
+    NAMESPACE bzip2::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/bzip2
+    FILE bzip2.cmake)
